@@ -6,7 +6,7 @@
 	let gameLive        = true,
 	      points        = 0,
 	      pointsMult    = 50,
-	      life          = 5,
+	      //life          = 5,
 	      rightKey      = false,
 	      leftKey       = false,
 	      upKey         = false,
@@ -43,7 +43,8 @@
 	bugImage.src = 'images/enemy-bug.png';
 
 	//Hero Constructor
-	function Hero(speed, x, y, width, height, srcX, srcY, colX, colY) {
+	function Hero(life, speed, x, y, width, height, srcX, srcY, colX, colY) {
+		this.life   = life;
 		this.speed  = speed;
 		this.x      = x;
 		this.y      = y;
@@ -56,11 +57,18 @@
 	}
 
 	//Create Hero Object
-	let hero = new Hero(20, 280, 450, 67, 88, 0, 0, 50, 70);
+	let hero = new Hero(5, 20, 280, 450, 67, 88, 0, 0, 50, 70);
 
 	//Load Hero Image
 	let heroImage = new Image();
 	heroImage.src = 'images/hero.png';
+
+	Hero.prototype.die = function () {
+		alert('Game Over');
+		points        = 0;
+		this.life     = 6;
+		gemsCollected = 0;
+	};
 
 	//Gem Constructor
 	function Gem(x, y, width, height) {
@@ -69,6 +77,13 @@
 		this.width  = width;
 		this.height = height;
 	}
+
+	Gem.prototype.collected = function () {
+		gemsCollected += 1;
+		this.x = 50 + (Math.random() * (gameWidth - 101));
+		this.y = 50 + (Math.random() * (gameHeight - 101));
+		points = gemsCollected * pointsMult;
+	};
 
 	// Create Gem Object
 	let gem = new Gem(50 + (Math.random() * (gameWidth - 101)), 50 + (Math.random() * (gameHeight - 101)), 47, 55);
@@ -83,45 +98,45 @@
 
 	// Keyboard Functions
 	function keyDownHandler(event) {
-		if (event.keyCode == 39) {
+		if (event.keyCode === 39) {
 			rightKey = true;
 			isMoving = true;
 		}
-		else if (event.keyCode == 37) {
+		else if (event.keyCode === 37) {
 			leftKey  = true;
 			isMoving = true;
 		}
-		if (event.keyCode == 40) {
+		if (event.keyCode === 40) {
 			downKey  = true;
 			isMoving = true;
 		}
-		else if (event.keyCode == 38) {
+		else if (event.keyCode === 38) {
 			upKey    = true;
 			isMoving = true;
 		}
-		if (event.keyCode == 32) {
+		if (event.keyCode === 32) {
 			spacePressed = true;
 		}
 	}
 
 	function keyUpHandler(event) {
-		if (event.keyCode == 39) {
+		if (event.keyCode === 39) {
 			rightKey = false;
 			isMoving = false;
 		}
-		else if (event.keyCode == 37) {
+		else if (event.keyCode === 37) {
 			leftKey  = false;
 			isMoving = false;
 		}
-		if (event.keyCode == 40) {
+		if (event.keyCode === 40) {
 			downKey  = false;
 			isMoving = false;
 		}
-		else if (event.keyCode == 38) {
+		else if (event.keyCode === 38) {
 			upKey    = false;
 			isMoving = false;
 		}
-		if (event.keyCode == 32) {
+		if (event.keyCode === 32) {
 			spacePressed = false;
 		}
 	}
@@ -138,24 +153,21 @@
 		    hero.x + hero.colX > gem.x &&
 		    hero.y < gem.y + gem.height &&
 		    hero.colY + hero.y > gem.y) {
-			gemsCollected += 1;
-			gem.x  = 50 + (Math.random() * (gameWidth - 101));
-			gem.y  = 50 + (Math.random() * (gameHeight - 101));
-			points = gemsCollected * pointsMult;
+			gem.collected();
 		}
 
 		//Keyboard Move Hero and Define Sprite Sheet
 		if (isMoving) {
-			if (rightKey == true) {
+			if (rightKey === true) {
 				hero.x += hero.speed;
 			}
-			else if (leftKey == true) {
+			else if (leftKey === true) {
 				hero.x -= hero.speed;
 			}
-			else if (downKey == true) {
+			else if (downKey === true) {
 				hero.y += hero.speed;
 			}
-			else if (upKey == true) {
+			else if (upKey === true) {
 				hero.y -= hero.speed;
 			}
 		}
@@ -168,14 +180,12 @@
 			    hero.y < bug.srcY + bug.colY &&
 			    hero.colY + hero.y > bug.srcY) {
 				//Stop the Game and Reduce Life
-				if (life === 0) {
-					points        = 0;
-					life          = 6;
-					gemsCollected = 0;
+				if (hero.life === 0) {
+					hero.die();
 				}
 				//If Collision, reduces one live
-				if (life > 0) {
-					life -= 1;
+				if (hero.life > 0) {
+					hero.life -= 1;
 				}
 				//Define Position of Hero at Game Over
 				hero.x = 210;
@@ -222,7 +232,7 @@
 		//Draw Canvas
 		drawMap();
 		document.querySelector('#points').innerHTML = points;
-		document.querySelector('#life').innerHTML   = life;
+		document.querySelector('#life').innerHTML   = hero.life;
 
 		//Draw Hero
 		ctx.drawImage(heroImage, hero.srcX, hero.srcY, hero.width, hero.height, hero.x, hero.y, hero.width, hero.height);
@@ -232,7 +242,7 @@
 			ctx.drawImage(bugImage, bug.x, bug.y, bug.width, bug.height, bug.srcX, bug.srcY, bug.colX, bug.colY);
 		});
 
-		//Draw gem
+		//Draw Gem
 		ctx.drawImage(gemImage, 0, 0, gem.width, gem.height, gem.x, gem.y, gem.width, gem.height);
 	}
 
@@ -244,7 +254,6 @@
 			window.requestAnimationFrame(init);
 			isMoving = false;
 		}
-		frameCount += 1;
 	}
 
 	//Event Listeners
