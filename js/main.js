@@ -6,7 +6,6 @@
 	let gameLive        = true,
 	      points        = 0,
 	      pointsMult    = 50,
-	      //life          = 5,
 	      rightKey      = false,
 	      leftKey       = false,
 	      upKey         = false,
@@ -42,6 +41,22 @@
 	let bugImage = new Image();
 	bugImage.src = 'images/enemy-bug.png';
 
+	Bug.prototype.move = function () {
+		//Move the Bugs
+		this.srcX += this.speed;
+
+		//Define Borders for Bugs
+		if (this.srcX >= gameWidth) {
+			this.srcX = 0;
+			this.speed *= 1;
+			this.srcX = 0;
+		}
+		else if (this.x >= gameWidth - 10) {
+			this.srcX = -50;
+			this.speed *= 1;
+		}
+	};
+
 	//Hero Constructor
 	function Hero(life, speed, x, y, width, height, srcX, srcY, colX, colY) {
 		this.life   = life;
@@ -68,6 +83,37 @@
 		points        = 0;
 		this.life     = 6;
 		gemsCollected = 0;
+	};
+
+	Hero.prototype.move = function () {
+		if (rightKey === true) {
+			this.x += this.speed;
+		}
+		else if (leftKey === true) {
+			this.x -= this.speed;
+		}
+		else if (downKey === true) {
+			this.y += this.speed;
+		}
+		else if (upKey === true) {
+			this.y -= this.speed;
+		}
+	};
+
+	Hero.prototype.limits = function () {
+		//Define Map Borders for Hero
+		if (this.y <= 10) {
+			this.y = 10;
+		}
+		else if (this.y >= gameHeight - 115) {
+			this.y = gameHeight - 115;
+		}
+		if (this.x <= 10) {
+			this.x = 10;
+		}
+		else if (this.x >= gameWidth - 80) {
+			this.x = gameWidth - 80;
+		}
 	};
 
 	//Gem Constructor
@@ -156,20 +202,9 @@
 			gem.collected();
 		}
 
-		//Keyboard Move Hero and Define Sprite Sheet
+		//Keyboard Move Hero
 		if (isMoving) {
-			if (rightKey === true) {
-				hero.x += hero.speed;
-			}
-			else if (leftKey === true) {
-				hero.x -= hero.speed;
-			}
-			else if (downKey === true) {
-				hero.y += hero.speed;
-			}
-			else if (upKey === true) {
-				hero.y -= hero.speed;
-			}
+			hero.move();
 		}
 
 		// Bugs Functions (Move, Collision)
@@ -187,39 +222,15 @@
 				if (hero.life > 0) {
 					hero.life -= 1;
 				}
-				//Define Position of Hero at Game Over
+				//Define Position of Hero at each Collision with Bug
 				hero.x = 210;
 				hero.y = 450;
 			}
 
-			//Move the Bugs
-			bug.srcX += bug.speed;
-
-			//Define Borders for Bugs
-			if (bug.srcX >= gameWidth) {
-				bug.srcX = 0;
-				bug.speed *= 1;
-				bug.srcX = 0;
-			}
-			else if (bug.x >= gameWidth - 10) {
-				bug.srcX = -50;
-				bug.speed *= 1;
-			}
+			bug.move();
 		});
 
-		//Define Map Borders for Hero
-		if (hero.y <= 10) {
-			hero.y = 10;
-		}
-		else if (hero.y >= gameHeight - 115) {
-			hero.y = gameHeight - 115;
-		}
-		if (hero.x <= 10) {
-			hero.x = 10;
-		}
-		else if (hero.x >= gameWidth - 80) {
-			hero.x = gameWidth - 80;
-		}
+		hero.limits();
 	}
 
 	//Draw the map
